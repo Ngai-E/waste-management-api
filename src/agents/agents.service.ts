@@ -29,13 +29,19 @@ export class AgentsService {
 
   async update(userId: string, updateData: Partial<PickupAgentProfile>): Promise<PickupAgentProfile> {
     const agent = await this.findByUserId(userId);
+    if (!agent) {
+      throw new Error('Agent not found');
+    }
     Object.assign(agent, updateData);
     return this.agentRepository.save(agent);
   }
 
-  async updateKycStatus(agentId: string, kycStatus: KycStatus): Promise<PickupAgentProfile> {
+  async updateKycStatus(agentId: string, kycStatus: string): Promise<PickupAgentProfile> {
     await this.agentRepository.update(agentId, { kycStatus });
     const agent = await this.agentRepository.findOne({ where: { id: agentId } });
+    if (!agent) {
+      throw new Error('Agent not found');
+    }
     return agent;
   }
 
