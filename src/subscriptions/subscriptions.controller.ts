@@ -4,6 +4,7 @@ import { SubscriptionsService } from './subscriptions.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { Roles } from '../common/decorators/roles.decorator';
 import { Role } from '../common/enums/role.enum';
+import { CurrentUser } from '../common/decorators/current-user.decorator';
 
 @ApiTags('Subscriptions')
 @Controller('subscriptions')
@@ -17,6 +18,13 @@ export class SubscriptionsController {
   @ApiOperation({ summary: 'Get subscriptions' })
   async findAll(@Query('householdId') householdId?: string) {
     return this.subscriptionsService.findAll(householdId);
+  }
+
+  @Get('me')
+  @Roles(Role.HOUSEHOLD)
+  @ApiOperation({ summary: 'Get my subscriptions (household only)' })
+  async getMySubscriptions(@CurrentUser('sub') userId: string) {
+    return this.subscriptionsService.findByUserId(userId);
   }
 
   @Post()

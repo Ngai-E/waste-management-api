@@ -22,6 +22,13 @@ export class SurveysController {
     return this.surveysService.findAllSurveys(targetGroup, isActive);
   }
 
+  @Get(':id')
+  @Public()
+  @ApiOperation({ summary: 'Get survey by ID' })
+  async findOne(@Param('id') id: string) {
+    return this.surveysService.findOne(id);
+  }
+
   @Post()
   @UseGuards(JwtAuthGuard)
   @Roles(Role.ADMIN)

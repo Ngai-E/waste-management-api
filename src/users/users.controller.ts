@@ -43,4 +43,14 @@ export class UsersController {
   ) {
     return this.usersService.updateStatus(id, isActive);
   }
+
+  @Patch(':id')
+  @Roles(Role.ADMIN)
+  @ApiOperation({ summary: 'Update user details (Admin only)' })
+  async update(
+    @Param('id') id: string,
+    @Body() updateDto: any,
+  ) {
+    return this.usersService.update(id, updateDto);
+  }
 }

@@ -41,4 +41,20 @@ export class SubscriptionsService {
       order: { createdAt: 'DESC' },
     });
   }
+
+  async findByUserId(userId: string): Promise<Subscription[]> {
+    const household = await this.householdRepository.findOne({
+      where: { userId },
+    });
+
+    if (!household) {
+      throw new NotFoundException('Household profile not found');
+    }
+
+    return this.subscriptionRepository.find({
+      where: { householdId: household.id },
+      relations: ['household'],
+      order: { createdAt: 'DESC' },
+    });
+  }
 }

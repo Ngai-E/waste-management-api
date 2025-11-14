@@ -227,6 +227,30 @@ def test_household_profile_and_stats(r: TestRunner):
     assert_status(resp, 200, "households/me/stats")
     print("Household stats:", resp.json())
 
+def test_subscription_me_household(r: TestRunner):
+    token = r.context.get("household_access")
+    household_profile_id = r.context.get("household_profile_id")
+
+    assert token, "household_access missing"
+    assert household_profile_id, "household_profile_id missing"
+
+    # GET /subscriptions/me
+    url = f"{BASE_URL}{API_PREFIX}/subscriptions/me"
+    resp = requests.get(url, headers=auth_headers(token), timeout=10)
+    assert_status(resp, 200, "subscriptions/me")
+
+    data = resp.json()
+    print("Household subscriptions (self):", data)
+
+    # If at least one subscription exists, verify its household association
+    if isinstance(data, list) and data:
+        for sub in data:
+            hid = sub.get("householdId")
+            # Depending on your schema, this may be an object or ID
+            if isinstance(hid, dict):
+                hid = hid.get("id")
+            assert hid == household_profile_id, "Subscription does not belong to logged-in household"
+
 
 def test_agent_auth_and_stats(r: TestRunner):
     if not (AGENT_PHONE and AGENT_PASSWORD):
@@ -504,6 +528,13 @@ def test_surveys_flow(r: TestRunner):
     r.context["survey_id"] = survey_id
     print("Created survey:", survey_id)
 
+    # GET survey by ID (new endpoint)
+    url = f"{BASE_URL}{API_PREFIX}/surveys/{survey_id}"
+    resp = requests.get(url, headers=auth_headers(admin_token), timeout=10)
+    assert_status(resp, 200, "get single survey")
+    print("Single survey detail:", resp.json())
+
+
     # List surveys
     url = f"{BASE_URL}{API_PREFIX}/surveys"
     params = {"targetGroup": "HOUSEHOLDS", "active": True}
@@ -591,6 +622,32 @@ def test_stats_admin(r: TestRunner):
     assert_status(resp, 200, "agent performance stats")
     print("Agent performance stats:", resp.json())
 
+def test_admin_update_user(r: TestRunner):
+    admin_token = r.context.get("admin_access")
+    household_user_id = r.context.get("household_id")
+
+    assert admin_token, "No admin_access token"
+    assert household_user_id, "household_id missing"
+
+    # PATCH /users/:id
+    url = f"{BASE_URL}{API_PREFIX}/users/{household_user_id}"
+    payload = {
+        "name": "Updated Household User",
+        "isActive": True
+    }
+    resp = requests.patch(url, json=payload, headers=auth_headers(admin_token), timeout=10)
+    assert_status(resp, 200, "PATCH /users/:id")
+    print("Updated user (admin):", resp.json())
+
+    # GET to confirm
+    url = f"{BASE_URL}{API_PREFIX}/users/{household_user_id}"
+    resp = requests.get(url, headers=auth_headers(admin_token), timeout=10)
+    assert_status(resp, 200, "GET updated user")
+    data = resp.json()
+
+    assert data.get("name") == "Updated Household User", "User name was not updated"
+    print("User update confirmed:", data)
+
 
 def test_file_upload(r: TestRunner):
     admin_token = r.context.get("admin_access") or r.context.get("household_access")
@@ -640,6 +697,8 @@ if __name__ == "__main__":
         runner.run("Education admin & public", test_education_admin_and_public)
         runner.run("Surveys flow", test_surveys_flow)
         runner.run("Subscriptions admin", test_subscriptions_admin)
+        runner.run("Subscriptions /me (household)", test_subscription_me_household)
+        runner.run("Admin update user", test_admin_update_user)
         runner.run("Stats admin", test_stats_admin)
         runner.run("File upload", test_file_upload)
     else:
