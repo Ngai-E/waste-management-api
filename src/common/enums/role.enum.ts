@@ -1,0 +1,7 @@
+export enum Role {
+  HOUSEHOLD = 'HOUSEHOLD',
+  AGENT = 'AGENT',
+  ADMIN = 'ADMIN',
+  HYSACAM = 'HYSACAM',
+  COUNCIL = 'COUNCIL',
+}

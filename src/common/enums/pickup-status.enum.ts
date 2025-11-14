@@ -1,0 +1,7 @@
+export enum PickupStatus {
+  REQUESTED = 'REQUESTED',
+  ASSIGNED = 'ASSIGNED',
+  ON_GOING = 'ON_GOING',
+  COMPLETED = 'COMPLETED',
+  CANCELED = 'CANCELED',
+}

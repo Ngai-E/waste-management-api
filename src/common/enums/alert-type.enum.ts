@@ -1,0 +1,6 @@
+export enum AlertType {
+  FULL_BIN = 'FULL_BIN',
+  ILLEGAL_DUMPING = 'ILLEGAL_DUMPING',
+  MISSED_PICKUP = 'MISSED_PICKUP',
+  OTHER = 'OTHER',
+}
