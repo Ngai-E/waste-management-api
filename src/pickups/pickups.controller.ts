@@ -23,12 +23,14 @@ export class PickupsController {
   @Get()
   @ApiOperation({ summary: 'Get all pickups' })
   @ApiQuery({ name: 'scope', required: false })
+  @ApiQuery({ name: 'status', required: false })
   async findAll(
     @CurrentUser('sub') userId: string,
     @CurrentUser('role') userRole: Role,
     @Query('scope') scope?: string,
+    @Query('status') status?: string,
   ) {
-    return this.pickupsService.findAll(userId, userRole, scope);
+    return this.pickupsService.findAll(userId, userRole, scope, status);
   }
 
   @Get('available')

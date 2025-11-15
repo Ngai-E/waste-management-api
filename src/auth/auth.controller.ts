@@ -1,7 +1,9 @@
-import { Controller, Post, Body, UseGuards, Patch, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Patch, HttpCode, HttpStatus, ForbiddenException } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
+import { ConfigService } from '@nestjs/config';
 import { AuthService } from './auth.service';
 import { RegisterHouseholdDto } from './dto/register-household.dto';
+import { RegisterAgentDto } from './dto/register-agent.dto';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
@@ -13,7 +15,10 @@ import { AuthGuard } from '@nestjs/passport';
 @ApiTags('Authentication')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly configService: ConfigService,
+  ) {}
 
   @Public()
   @Post('register')
@@ -22,6 +27,22 @@ export class AuthController {
   @ApiResponse({ status: 409, description: 'User already exists' })
   async register(@Body() registerDto: RegisterHouseholdDto) {
     return this.authService.register(registerDto);
+  }
+
+  @Public()
+  @Post('register-agent')
+  @ApiOperation({ summary: 'Register a new agent user (requires feature flag enabled)' })
+  @ApiResponse({ status: 201, description: 'Agent registered successfully' })
+  @ApiResponse({ status: 403, description: 'Agent self-registration is disabled' })
+  @ApiResponse({ status: 409, description: 'User already exists' })
+  async registerAgent(@Body() registerDto: RegisterAgentDto) {
+    const isEnabled = this.configService.get<string>('ENABLE_AGENT_SELF_REGISTRATION') === 'true';
+    
+    if (!isEnabled) {
+      throw new ForbiddenException('Agent self-registration is currently disabled. Please contact an administrator.');
+    }
+    
+    return this.authService.registerAgent(registerDto);
   }
 
   @Public()

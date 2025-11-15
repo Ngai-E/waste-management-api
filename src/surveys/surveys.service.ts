@@ -16,7 +16,8 @@ export class SurveysService {
   async createSurvey(createDto: any): Promise<Survey> {
     const survey = this.surveyRepository.create(createDto);
     // TypeORM save returns the saved entity
-    return this.surveyRepository.save(survey);
+    const saved = await this.surveyRepository.save(survey);
+    return Array.isArray(saved) ? saved[0] : saved;
   }
 
   async findAllSurveys(targetGroup?: string, isActive?: boolean): Promise<Survey[]> {

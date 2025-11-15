@@ -28,7 +28,8 @@ export class SubscriptionsService {
     }
 
     const subscription = this.subscriptionRepository.create(createDto);
-    return this.subscriptionRepository.save(subscription);
+    const saved = await this.subscriptionRepository.save(subscription);
+    return Array.isArray(saved) ? saved[0] : saved;
   }
 
   async findAll(householdId?: string): Promise<Subscription[]> {

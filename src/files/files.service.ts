@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import { Multer } from 'multer';
 
 @Injectable()
 export class FilesService {
@@ -9,9 +10,9 @@ export class FilesService {
 
   constructor(private configService: ConfigService) {}
 
-  async uploadFile(file: Express.Multer.File): Promise<string> {
-    const uploadDir = this.configService.get<string>('upload.destination');
-    const storageProvider = this.configService.get<string>('upload.storageProvider');
+  async uploadFile(file: Multer.File): Promise<string> {
+    const uploadDir = this.configService.get<string>('upload.destination') || './uploads';
+    const storageProvider = this.configService.get<string>('upload.storageProvider') || 'local';
 
     if (storageProvider === 'local') {
       // Ensure upload directory exists

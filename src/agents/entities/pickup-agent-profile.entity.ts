@@ -36,6 +36,15 @@ export class PickupAgentProfile {
   @Column({ name: 'id_document_url', nullable: true })
   idDocumentUrl: string;
 
+  @Column({ name: 'driver_license_url', nullable: true })
+  driverLicenseUrl: string;
+
+  @Column({ name: 'vehicle_registration_url', nullable: true })
+  vehicleRegistrationUrl: string;
+
+  @Column({ name: 'kyc_rejection_reason', nullable: true, type: 'text' })
+  kycRejectionReason: string;
+
   @Column({ type: 'decimal', precision: 3, scale: 2, name: 'average_rating', default: 0 })
   averageRating: number;
 

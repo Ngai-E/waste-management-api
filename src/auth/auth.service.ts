@@ -6,8 +6,11 @@ import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import { User } from '../users/entities/user.entity';
 import { HouseholdProfile } from '../households/entities/household-profile.entity';
+import { PickupAgentProfile } from '../agents/entities/pickup-agent-profile.entity';
 import { RegisterHouseholdDto } from './dto/register-household.dto';
+import { RegisterAgentDto } from './dto/register-agent.dto';
 import { Role } from '../common/enums/role.enum';
+import { KycStatus } from '../common/enums/kyc-status.enum';
 
 @Injectable()
 export class AuthService {
@@ -16,6 +19,8 @@ export class AuthService {
     private userRepository: Repository<User>,
     @InjectRepository(HouseholdProfile)
     private householdProfileRepository: Repository<HouseholdProfile>,
+    @InjectRepository(PickupAgentProfile)
+    private agentProfileRepository: Repository<PickupAgentProfile>,
     private jwtService: JwtService,
     private configService: ConfigService,
   ) {}
@@ -52,6 +57,61 @@ export class AuthService {
     });
 
     await this.householdProfileRepository.save(householdProfile);
+
+    // Generate tokens
+    const tokens = await this.generateTokens(user);
+
+    // Save refresh token
+    user.refreshToken = await bcrypt.hash(tokens.refreshToken, 10);
+    await this.userRepository.save(user);
+
+    return {
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+      },
+      ...tokens,
+    };
+  }
+
+  async registerAgent(registerDto: RegisterAgentDto) {
+    // Check if user exists
+    const existingUser = await this.userRepository.findOne({
+      where: [{ phone: registerDto.phone }, { email: registerDto.email }],
+    });
+
+    if (existingUser) {
+      throw new ConflictException('User with this phone or email already exists');
+    }
+
+    // Hash password
+    const passwordHash = await bcrypt.hash(registerDto.password, 10);
+
+    // Create user with AGENT role
+    const user = this.userRepository.create({
+      name: registerDto.name,
+      email: registerDto.email,
+      phone: registerDto.phone,
+      passwordHash,
+      address: registerDto.address,
+      quarter: registerDto.quarter,
+      role: Role.AGENT,
+    });
+
+    await this.userRepository.save(user);
+
+    // Create agent profile
+    const agentProfile = this.agentProfileRepository.create({
+      userId: user.id,
+      kycStatus: KycStatus.PENDING,
+      averageRating: 0,
+      totalCompletedPickups: 0,
+    });
+
+    await this.agentProfileRepository.save(agentProfile);
 
     // Generate tokens
     const tokens = await this.generateTokens(user);

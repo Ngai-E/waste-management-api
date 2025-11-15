@@ -42,7 +42,7 @@ export class PickupsService {
     return this.pickupRepository.save(pickup);
   }
 
-  async findAll(userId: string, userRole: Role, scope?: string) {
+  async findAll(userId: string, userRole: Role, scope?: string, status?: string) {
     const queryBuilder = this.pickupRepository
       .createQueryBuilder('pickup')
       .leftJoinAndSelect('pickup.household', 'household')
@@ -65,6 +65,11 @@ export class PickupsService {
       if (scope === 'mine') {
         queryBuilder.where('pickup.agentId = :agentId', { agentId: agent.id });
       }
+    }
+
+    // Filter by status if provided
+    if (status) {
+      queryBuilder.andWhere('pickup.status = :status', { status });
     }
 
     queryBuilder.orderBy('pickup.scheduledDate', 'DESC');
@@ -99,6 +104,11 @@ export class PickupsService {
 
     if (!agent) {
       throw new NotFoundException('Agent profile not found');
+    }
+
+    // Check KYC status
+    if (agent.kycStatus !== 'APPROVED') {
+      throw new BadRequestException('Your account is pending KYC approval. Please contact an administrator.');
     }
 
     if (pickup.status !== PickupStatus.REQUESTED) {

@@ -10,10 +10,11 @@ import { RefreshJwtStrategy } from './refresh-jwt.strategy';
 import { LocalStrategy } from './local.strategy';
 import { User } from '../users/entities/user.entity';
 import { HouseholdProfile } from '../households/entities/household-profile.entity';
+import { PickupAgentProfile } from '../agents/entities/pickup-agent-profile.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, HouseholdProfile]),
+    TypeOrmModule.forFeature([User, HouseholdProfile, PickupAgentProfile]),
     PassportModule,
     JwtModule.register({}),
     ConfigModule,
