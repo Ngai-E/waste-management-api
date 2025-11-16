@@ -42,6 +42,7 @@ import { SurveyResponse } from '../surveys/entities/survey-response.entity';
         logging: configService.get('nodeEnv') === 'development',
         migrations: [__dirname + '/migrations/**/*{.ts,.js}'],
         migrationsRun: false,
+        ssl: configService.get('nodeEnv') === 'production' ? { rejectUnauthorized: false } : false,
       }),
     }),
   ],
