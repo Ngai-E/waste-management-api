@@ -10,9 +10,9 @@ export class EducationService {
     private educationRepository: Repository<EducationalContent>,
   ) {}
 
-  async create(createDto: any): Promise<EducationalContent> {
+  async create(createDto: Partial<EducationalContent>): Promise<EducationalContent> {
     const content = this.educationRepository.create(createDto);
-    return this.educationRepository.save(content);
+    return await this.educationRepository.save(content);
   }
 
   async findAll(audience?: string, language?: string): Promise<EducationalContent[]> {

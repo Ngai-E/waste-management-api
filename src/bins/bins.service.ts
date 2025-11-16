@@ -10,9 +10,9 @@ export class BinsService {
     private binRepository: Repository<CommunityBin>,
   ) {}
 
-  async create(createDto: any): Promise<CommunityBin> {
+  async create(createDto: Partial<CommunityBin>): Promise<CommunityBin> {
     const bin = this.binRepository.create(createDto);
-    return this.binRepository.save(bin);
+    return await this.binRepository.save(bin);
   }
 
   async findAll(): Promise<CommunityBin[]> {
