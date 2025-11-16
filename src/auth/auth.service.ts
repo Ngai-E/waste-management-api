@@ -252,4 +252,40 @@ export class AuthService {
       refreshToken,
     };
   }
+
+  async updateProfile(
+    userId: string,
+    updateDto: { name?: string; email?: string; address?: string; quarter?: string },
+  ) {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    // Check if email is being changed and if it's already taken
+    if (updateDto.email && updateDto.email !== user.email) {
+      const existingUser = await this.userRepository.findOne({
+        where: { email: updateDto.email },
+      });
+      if (existingUser) {
+        throw new ConflictException('Email already in use');
+      }
+    }
+
+    // Update user fields
+    if (updateDto.name) user.name = updateDto.name;
+    if (updateDto.email) user.email = updateDto.email;
+    if (updateDto.address) user.address = updateDto.address;
+    if (updateDto.quarter) user.quarter = updateDto.quarter;
+
+    await this.userRepository.save(user);
+
+    // Return updated user without sensitive data
+    const { passwordHash, refreshToken, ...userWithoutSensitiveData } = user;
+    return {
+      message: 'Profile updated successfully',
+      user: userWithoutSensitiveData,
+    };
+  }
 }

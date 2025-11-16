@@ -92,4 +92,16 @@ export class AuthController {
       changePasswordDto.newPassword,
     );
   }
+
+  @Patch('me')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update current user profile' })
+  @ApiResponse({ status: 200, description: 'Profile updated successfully' })
+  async updateProfile(
+    @CurrentUser('sub') userId: string,
+    @Body() updateDto: { name?: string; email?: string; address?: string; quarter?: string },
+  ) {
+    return this.authService.updateProfile(userId, updateDto);
+  }
 }
